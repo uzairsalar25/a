@@ -1,0 +1,22 @@
+# Royal News Video Editor — Python dependencies
+#
+# Install:  pip install -r requirements.txt
+#
+# NOTE: ffmpeg + ffprobe bhi chahiye (system pe). Agar system me nahi hai to
+# imageio-ffmpeg static ffmpeg de deta hai (neeche), par ffprobe ke liye
+# behtar hai ke system ffmpeg install karein:
+#   Ubuntu/Debian : sudo apt install ffmpeg
+#   Mac (brew)    : brew install ffmpeg
+#   Windows       : https://www.gyan.dev/ffmpeg/builds/  (PATH me daalein)
+
+# --- Subtitles / Transcription ---
+faster-whisper>=1.0.0        # Free local transcription (Whisper)
+# assemblyai>=0.35.0         # (optional) sirf tab jab ASSEMBLYAI_API_KEY use karna ho
+
+# --- Text-to-Speech (free) ---
+edge-tts>=6.1.0              # Free Microsoft Edge neural voices (koi key nahi)
+
+# --- Utilities ---
+python-dotenv>=1.0.0         # .env se keys load karna
+imageio-ffmpeg>=0.5.1        # fallback static ffmpeg agar system me na ho
+requests>=2.31.0            # AssemblyAI / AI33Pro HTTP calls

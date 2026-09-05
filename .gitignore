@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Work / output artifacts
+temp/
+output/
+*.log
+
+# Big media (assets/input videos ko commit na karein) — folders rakhein, media nahi
+input_videos/*
+assets/member_clips/**
+assets/backgrounds/*
+assets/grids/*
+# keep the empty-folder placeholders so the structure exists on clone
+!**/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Whisper model cache
+.cache/
