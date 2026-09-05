@@ -31,11 +31,20 @@ import build_timeline       # noqa: E402
 import render_video         # noqa: E402
 import gen_metadata         # noqa: E402
 
+# Where to read source videos from. Default = project's input_videos/.
+# Overridden by --input so users can point at their existing data folder
+# (e.g. D:\RoyalData\videos) WITHOUT copying gigabytes into the project.
+INPUT_DIR = INPUT
+
 
 def find_video(nn: str) -> Path | None:
+    # match 01.mp4 exactly, and also "01 - anything.mp4" / "01_anything.mp4"
     for ext in (".mp4", ".mov", ".mkv", ".webm", ".m4v"):
-        p = INPUT / f"{nn}{ext}"
+        p = INPUT_DIR / f"{nn}{ext}"
         if p.exists():
+            return p
+    for p in sorted(INPUT_DIR.glob(f"{nn}*")):
+        if p.suffix.lower() in (".mp4", ".mov", ".mkv", ".webm", ".m4v"):
             return p
     return None
 
@@ -115,7 +124,17 @@ def main():
     ap.add_argument("start", help="first video number, e.g. 1")
     ap.add_argument("end", nargs="?", default=None, help="last video number (optional)")
     ap.add_argument("--encoder", default=None, help="auto|nvenc|cpu")
+    ap.add_argument("--input", default=None,
+                    help="apne videos ka folder path (default: input_videos/)")
     args = ap.parse_args()
+
+    global INPUT_DIR
+    if args.input:
+        INPUT_DIR = Path(args.input).expanduser()
+        if not INPUT_DIR.is_dir():
+            print(f"[ERROR] --input folder nahi mila: {INPUT_DIR}")
+            sys.exit(2)
+        print(f"Input folder: {INPUT_DIR}")
 
     numbers = parse_range(args.start, args.end)
     print(f"Batch: {numbers}")

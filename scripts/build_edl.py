@@ -317,6 +317,7 @@ def build_edl(srt_path: str, video_path: str) -> Dict:
 
     edl = {
         "video": Path(video_path).name,
+        "video_path": str(Path(video_path).resolve()),
         "duration_sec": round(duration, 3),
         "topic_summary": full_text[:200],
         "royal_members_mentioned": members_all,

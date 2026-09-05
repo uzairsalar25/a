@@ -108,7 +108,8 @@ def allocate_clips(members: List[str], used: set, need: float) -> List[Dict]:
 
 def build_timeline(nn: str) -> Dict:
     edl = load_json(TEMP / f"{nn}_edl.json")
-    src = str(INPUT / edl["video"])
+    # prefer the absolute path recorded in the EDL (supports --input folders)
+    src = edl.get("video_path") or str(INPUT / edl["video"])
     blocks = edl.get("_main_blocks") or [[s] for s in edl["keep_segments"]]
     narrs = edl["narration_blocks"]
     background = pick_background()
