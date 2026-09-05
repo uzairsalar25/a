@@ -23,6 +23,9 @@ pip install -r requirements.txt
 # 3) config
 cp .env.example .env        # keys optional — default sab FREE
 
+# 3b) sab theek laga hai? doctor chalao:
+python scripts/setup_check.py    # Python, ffmpeg, GPU/NVENC, folders sab check
+
 # 4) apni videos daalein
 #    input_videos/01.mp4, 02.mp4, ...
 
