@@ -27,13 +27,14 @@ input int    ATRPeriod         = 14;     // ATR period
 input double GapATRMult        = 0.5;    // Gap = ATR x this
 input double GapFixed          = 1.50;   // Gap in price when UseATR = false ($1.50 on gold)
 input double MinGap            = 1.50;   // Gap is never smaller than this (price)
-input double MaxGap            = 4.00;   // Gap is never larger than this (price)
+input double MaxGap            = 2.50;   // Gap is never larger than this (price)
 input int    MaxTradesPerSide  = 6;      // Max positions per side (including the first one)
 input int    AddCooldownSec    = 5;      // Min seconds between adds on the same side
 
 //================= STOPS =================//
 input group "Stops and trailing (measured in gaps)"
-input double HardSLGaps        = 3.0;    // Every trade opens with an SL this many gaps away (0 = none)
+input double HardSLGaps        = 2.0;    // Every trade opens with an SL this many gaps away (0 = none)
+input double MaxHardSL         = 5.00;   // Hard SL is never further than this from entry (price, 0 = no cap)
 input double TrailStartGaps    = 1.0;    // Start trailing when price is this many gaps beyond the side's average
 input double TrailDistGaps     = 0.75;   // Trailing SL distance behind price (gaps)
 input double TrailStepGaps     = 0.10;   // Min SL improvement before modifying (gaps)
@@ -42,7 +43,7 @@ input double TrailStepGaps     = 0.10;   // Min SL improvement before modifying 
 input group "Cycle management"
 input bool   CloseLoserWhenCovered = true; // Close the losing side once winners' locked profit covers it
 input double CoverBufferMoney  = 1.0;    // Extra locked profit required on top of the loser's loss (money)
-input double CycleTargetMoney  = 0.0;    // Close everything at this cycle profit (0 = off, let the trail run)
+input double CycleTargetPer001 = 2.0;    // Close everything at this cycle profit per 0.01 lot (0 = off, let the trail run)
 input double CycleStopPct      = 30.0;   // Close everything if the cycle loses this % of equity (0 = off)
 input int    CycleStopPauseMin = 30;     // Pause this many minutes after a cycle stop
 input int    RestartDelaySec   = 60;     // Wait this many seconds before starting a new cycle
@@ -380,7 +381,9 @@ bool OpenTrade(const ENUM_POSITION_TYPE type, const double gap, const string tag
    double sl = 0;
    if(HardSLGaps > 0)
    {
-      double d = MathMax(HardSLGaps * gap, MinStopGap());
+      double d = HardSLGaps * gap;
+      if(MaxHardSL > 0) d = MathMin(d, MaxHardSL);
+      d = MathMax(d, MinStopGap());
       sl = NormPrice(isBuy ? price - d : price + d);
    }
 
@@ -466,13 +469,13 @@ void ShowPanel(const SideState &b, const SideState &s, const double atr, const d
       "ATR: %.2f   Gap: %.2f   Spread: %.2f\n"
       "BUY : %d pos  %.2f lots  avg %.2f  P/L %.2f  locked %.2f\n"
       "SELL: %d pos  %.2f lots  avg %.2f  P/L %.2f  locked %.2f\n"
-      "Cycle P/L (closed + open): %.2f\n"
+      "Cycle P/L (closed + open): %.2f  (target %.2f)\n"
       "Today: %+.2f%%  (limit -%.1f%%)\n"
       "Drawdown from peak: %.2f%%  (halt at %.1f%%)",
       status, atr, gap, Spread(),
       b.count, b.lots, b.avgPrice, b.profit, b.protectedAll ? b.locked : 0.0,
       s.count, s.lots, s.avgPrice, s.profit, s.protectedAll ? s.locked : 0.0,
-      cycleNet, dayPct, DailyLossPct, ddPct, MaxDrawdownPct));
+      cycleNet, CycleTargetPer001 * TradeLot() / 0.01, dayPct, DailyLossPct, ddPct, MaxDrawdownPct));
 }
 
 //+------------------------------------------------------------------+
@@ -565,7 +568,8 @@ void OnTick()
          ShowPanel(buys, sells, atr, gap, cycleNet, "");
          return;
       }
-      if(CycleTargetMoney > 0 && cycleNet >= CycleTargetMoney)
+      double target = CycleTargetPer001 * TradeLot() / 0.01;   // scales with lot size
+      if(target > 0 && cycleNet >= target)
       {
          CloseAllSides("cycle target");
          EndCycle("cycle target", RestartDelaySec);
