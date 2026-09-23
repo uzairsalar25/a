@@ -43,7 +43,7 @@ input group "Cycle management"
 input bool   CloseLoserWhenCovered = true; // Close the losing side once winners' locked profit covers it
 input double CoverBufferMoney  = 1.0;    // Extra locked profit required on top of the loser's loss (money)
 input double CycleTargetMoney  = 0.0;    // Close everything at this cycle profit (0 = off, let the trail run)
-input double CycleStopPct      = 3.0;    // Close everything if the cycle loses this % of equity (0 = off)
+input double CycleStopPct      = 30.0;   // Close everything if the cycle loses this % of equity (0 = off)
 input int    CycleStopPauseMin = 30;     // Pause this many minutes after a cycle stop
 input int    RestartDelaySec   = 60;     // Wait this many seconds before starting a new cycle
 
